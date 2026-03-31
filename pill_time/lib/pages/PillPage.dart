@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pill_time/src/providers/memory.dart';
-import 'package:pill_time/src/remedy.dart';
+import 'package:pill_time/src/models/remedy.dart';
 import 'package:pill_time/src/providers/settings.dart';
 import 'package:provider/provider.dart';
 

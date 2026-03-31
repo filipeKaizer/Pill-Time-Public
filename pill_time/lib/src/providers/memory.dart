@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:pill_time/src/connection.dart';
-import 'package:pill_time/src/remedy.dart';
-import 'package:pill_time/src/notification.dart';
+import 'package:pill_time/src/models/medicationSchedule.dart';
+import 'package:pill_time/src/tools/connection.dart';
+import 'package:pill_time/src/models/remedy.dart';
+import 'package:pill_time/src/tools/notification.dart';
 import 'package:timezone/timezone.dart';
 import 'package:timezone/timezone.dart' as tz;
 
@@ -16,6 +17,7 @@ class Memory with ChangeNotifier {
   final GlobalKey<NavigatorState> navigatorKey;
 
   List<Remedy> remedies = [];
+  List<MedicationSchedule> schedulesMedications = [];
 
   Memory({required this.navigatorKey}) {
     connection = Connection();
@@ -51,6 +53,21 @@ class Memory with ChangeNotifier {
       "Tomar 1 pilula",
       TZDateTime.now(tz.local).add(Duration(seconds: 10)),
     );
+  }
+
+  List<ListTile> getRemedySugestions() {
+    if (remedies.isNotEmpty) {
+      return remedies.map((remedy) {
+        return ListTile(
+          title: Text(remedy.name),
+          trailing: Text(
+            "${(remedy.type == PillType.generic) ? "Genérico" : "Referência"}",
+          ),
+        );
+      }).toList();
+    }
+
+    return [];
   }
 
   // Future<File?> pickImage() async {

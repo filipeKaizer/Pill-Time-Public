@@ -6,4 +6,9 @@ Ac imagem pode ser tirada pelo profissional no momento do cadastro
 As imagens novas podem ser salvas na base de dados tbm, podendo ser reutilizadas posteriormente
 !! Procurar por bases de dados de imagens de remédios já existentes !!
 
+Configurações de horários:
+ - Horário inicial + periodicidade
+ - Adicionar horários manualmente
+ - Um dia especifico do mês
+
 

@@ -6,7 +6,7 @@ import re
 conn = mysql.connector.connect(
     host="200.18.75.25",
     user="pill",
-    password="299792458",
+    password="***",
     database="pill",
     port=8324
 )
