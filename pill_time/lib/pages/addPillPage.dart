@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:pill_time/pages/utils/hourSelectionWidget.dart';
+import 'package:pill_time/pages/utils/imageSelectionWidget.dart';
 import 'package:pill_time/pages/utils/utils.dart';
 import 'package:pill_time/src/models/medicationSchedule.dart';
 import 'package:pill_time/src/models/remedy.dart';
@@ -17,6 +18,8 @@ class Addpillpage extends StatefulWidget {
 
 class _AddpillpageState extends State<Addpillpage> {
   MedicationSchedule medicationSchedule = MedicationSchedule();
+  bool get hasRemedy =>
+      medicationSchedule.remedy != null && medicationSchedule.remedy.id != -1;
 
   void setDosage(double dosage) {
     setState(() => medicationSchedule.dose = dosage);
@@ -44,8 +47,11 @@ class _AddpillpageState extends State<Addpillpage> {
     });
   }
 
-  bool get hasRemedy =>
-      medicationSchedule.remedy != null && medicationSchedule.remedy.id != -1;
+  void setMounthDay(int dayOfMounth) {
+    setState(() {
+      medicationSchedule.mounthDay = dayOfMounth;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,10 +80,9 @@ class _AddpillpageState extends State<Addpillpage> {
               ),
             ),
             onPressed: () {
-              Provider.of<Memory>(
-                context,
-                listen: false,
-              ).schedulesMedications.add(medicationSchedule);
+              final memory = context.read<Memory>();
+
+              memory.addMedicationSchedule(medicationSchedule);
 
               Navigator.pop(context);
             },
@@ -113,7 +118,10 @@ class _AddpillpageState extends State<Addpillpage> {
             if (hasRemedy)
               SectionCard(
                 title: "Horários",
-                child: HourSelection(save: setHours),
+                child: HourSelection(
+                  save: setHours,
+                  setMounthDay: setMounthDay,
+                ),
               ),
 
             if (hasRemedy)
@@ -204,245 +212,6 @@ class SectionCard extends StatelessWidget {
           child,
         ],
       ),
-    );
-  }
-}
-
-//
-// IMAGENS
-//
-class ImageSelection extends StatefulWidget {
-  Function save;
-  ImageSelection({required this.save});
-
-  @override
-  State<ImageSelection> createState() => _ImageSelectionState();
-}
-
-class _ImageSelectionState extends State<ImageSelection> {
-  final List<dynamic> _images = []; // File OU String (URL)
-  final ImagePicker _picker = ImagePicker();
-
-  // 🔹 imagens simuladas da rede
-  final List<String> networkImages = [
-    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4d51mCgu-1ofVNrM68Q2cCE7MN-wPdW2XBQ&s",
-    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT_wbUohSUwniG30_TxyKno5Lfmz3m_oDjycw&s",
-    "https://raisingchildren.net.au/__data/assets/image/0029/47648/autism-spectrum-disorder-medicationsnarrow.jpg",
-  ];
-
-  Future<void> _pickFromGallery() async {
-    final XFile? picked = await _picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 800,
-      imageQuality: 70,
-    );
-
-    if (picked != null) {
-      setState(() => _images.add(File(picked.path)));
-    }
-  }
-
-  void _showSourceSelector() {
-    showModalBottomSheet(
-      context: context,
-      builder: (_) {
-        String? selectedUrl;
-
-        return SafeArea(
-          child: StatefulBuilder(
-            builder: (context, setModalState) {
-              return Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      "Selecionar origem",
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // DISPOSITIVO
-                    ListTile(
-                      leading: const Icon(Icons.photo),
-                      title: const Text("Galeria"),
-                      onTap: () {
-                        Navigator.pop(context);
-                        _pickFromGallery();
-                      },
-                    ),
-
-                    // REDE
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text("Selecionar da rede"),
-
-                        DropdownButton<String>(
-                          isExpanded: true,
-                          hint: const Text("Escolher imagem"),
-                          value: selectedUrl,
-                          items: networkImages.map((url) {
-                            return DropdownMenuItem(
-                              value: url,
-                              child: Row(
-                                children: [
-                                  Image.network(url, width: 40, height: 40),
-                                  const SizedBox(width: 10),
-                                  Text(url.split('/').last),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            setModalState(() => selectedUrl = value);
-                          },
-                        ),
-
-                        const SizedBox(height: 10),
-
-                        ElevatedButton(
-                          onPressed: selectedUrl == null
-                              ? null
-                              : () {
-                                  setState(() => _images.add(selectedUrl));
-                                  Navigator.pop(context);
-                                },
-                          child: const Text("Adicionar"),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        );
-      },
-    );
-
-    widget.save(_images);
-  }
-
-  Widget _buildImage(dynamic image) {
-    if (image is File) {
-      return Image.file(image, fit: BoxFit.cover);
-    } else if (image is String) {
-      return Image.network(image, fit: BoxFit.cover);
-    }
-    return const SizedBox();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: _images.length + 1,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-      ),
-      itemBuilder: (context, index) {
-        if (index < _images.length) {
-          return Stack(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: _buildImage(_images[index]),
-              ),
-              Positioned(
-                top: 4,
-                right: 4,
-                child: GestureDetector(
-                  onTap: () => setState(() => _images.removeAt(index)),
-                  child: const Icon(Icons.close, color: Colors.white),
-                ),
-              ),
-            ],
-          );
-        }
-
-        return GestureDetector(
-          onTap: _showSourceSelector,
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Settings.secondColor),
-            ),
-            child: Icon(Icons.add, color: Settings.secondColor),
-          ),
-        );
-      },
-    );
-  }
-}
-
-//
-// HORÁRIOS
-//
-class HourSelection extends StatefulWidget {
-  final Function(List<PillTime>) save;
-
-  const HourSelection({required this.save});
-
-  @override
-  State<HourSelection> createState() => _HourSelectionState();
-}
-
-class _HourSelectionState extends State<HourSelection> {
-  String selectedOption = "Intervalo";
-  TimeOfDay? selectedTime;
-
-  Future<void> pickTime() async {
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-
-    if (picked != null) {
-      setState(() => selectedTime = picked);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        SizedBox(
-          width: double.infinity,
-          child: SegmentedButton<String>(
-            segments: const [
-              ButtonSegment(
-                value: "Intervalo",
-                label: Text("Intervalo", style: TextStyle(fontSize: 12)),
-              ),
-              ButtonSegment(
-                value: "Fixos",
-                label: Text("Fixos", style: TextStyle(fontSize: 12)),
-              ),
-              ButtonSegment(
-                value: "Mensal",
-                label: Text("Mensal", style: TextStyle(fontSize: 12)),
-              ),
-            ],
-            selected: {selectedOption},
-            onSelectionChanged: (s) => setState(() => selectedOption = s.first),
-          ),
-        ),
-        const SizedBox(height: 10),
-        TextButton(
-          onPressed: pickTime,
-          child: Text(
-            selectedTime == null
-                ? "Selecionar horário"
-                : selectedTime!.format(context),
-            style: TextStyle(color: Settings.secondColor),
-          ),
-        ),
-      ],
     );
   }
 }

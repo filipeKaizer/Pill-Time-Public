@@ -70,16 +70,15 @@ class Memory with ChangeNotifier {
     return [];
   }
 
-  // Future<File?> pickImage() async {
-  //   ImagePicker imagePicker = ImagePicker();
-  //   final picked = await imagePicker.pickImage(source: ImageSource.gallery);
-
-  //   if (picked != null) {
-  //     return File(picked.path);
-  //   }
-
-  //   return null;
-  // }
+  void addMedicationSchedule(MedicationSchedule schedule) {
+    schedulesMedications.add(schedule);
+    for (PillTime time in schedule.times) {
+      print(time.hour);
+    }
+    print(schedule.dose);
+    print(schedule.qtd);
+    notifyListeners();
+  }
 
   void useAssistencePage() {
     onWelcomePage = false;

@@ -45,19 +45,19 @@ void main() {
           create: (_) => Memory(navigatorKey: navigatorKey),
         ),
       ],
-      child: const PillTime(),
+      child: const PillTimeWidget(),
     ),
   );
 }
 
-class PillTime extends StatefulWidget {
-  const PillTime({super.key});
+class PillTimeWidget extends StatefulWidget {
+  const PillTimeWidget({super.key});
 
   @override
-  State<PillTime> createState() => _PillTimeState();
+  State<PillTimeWidget> createState() => _PillTimeWidgetState();
 }
 
-class _PillTimeState extends State<PillTime> {
+class _PillTimeWidgetState extends State<PillTimeWidget> {
   int currentIndex = 0;
 
   final List<Widget> pages = [Pillpage(), Progresspage(), Settingspage()];
