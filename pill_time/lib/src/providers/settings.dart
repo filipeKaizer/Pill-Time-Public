@@ -9,6 +9,9 @@ class Settings with ChangeNotifier {
 
   static API api = API(port: 5000, ip: '192.168.0.168');
 
+  // Número de dias a serem registrados
+  static int numOfDays = 7;
+
   Settings() {
     api = API(port: 5000, ip: '192.168.0.168');
   }
