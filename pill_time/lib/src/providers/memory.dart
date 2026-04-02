@@ -26,12 +26,6 @@ class Memory with ChangeNotifier {
     _initializeRemedies();
 
     notification.init();
-
-    notification.addScheduleNotification(
-      "Sertralina",
-      "Tomar 1 pilula",
-      TZDateTime.now(tz.local).add(Duration(seconds: 10)),
-    );
   }
 
   Future<void> _initializeRemedies() async {
@@ -48,12 +42,6 @@ class Memory with ChangeNotifier {
     for (int i = 0; i < 10; i++) {
       remedies.add(Remedy.rand(name: "Remédio ${i + 1}"));
     }
-
-    notification.addScheduleNotification(
-      "Sertralina",
-      "Tomar 1 pilula",
-      TZDateTime.now(tz.local).add(Duration(seconds: 10)),
-    );
   }
 
   List<DateTime> getListOfDays(int max) {
