@@ -3,6 +3,7 @@ import 'package:pill_time/src/models/medicationSchedule.dart';
 import 'package:pill_time/src/providers/memory.dart';
 import 'package:pill_time/src/providers/settings.dart';
 import 'package:provider/provider.dart';
+import 'dart:convert';
 
 class Pillpage extends StatefulWidget {
   const Pillpage({super.key});
@@ -14,7 +15,7 @@ class Pillpage extends StatefulWidget {
 class _PillpageState extends State<Pillpage> {
   @override
   Widget build(BuildContext context) {
-    return Provider.of<Memory>(context, listen: false).remedies.isEmpty
+    return context.watch<Memory>().remedies.isEmpty
         ? EmptyPillList()
         : Padding(padding: const EdgeInsets.only(top: 10), child: PillList());
   }
@@ -31,7 +32,7 @@ class _PillListState extends State<PillList> {
   int selectedIndex = 0;
   @override
   Widget build(BuildContext context) {
-    Memory memory = Provider.of<Memory>(context, listen: true);
+    Memory memory = context.watch<Memory>();
     List<DateTime> listOfDays = memory.getListOfDays(7);
 
     List<MedicationSchedule> listMedicationSchedule = memory
@@ -159,7 +160,12 @@ class _PillListState extends State<PillList> {
                               width: 60,
                               height: 60,
                               child: remedy.images.isNotEmpty
-                                  ? remedy.images.first
+                                  ? Image.memory(
+                                      base64Decode(remedy.images.first),
+                                      fit: BoxFit.cover,
+                                      width: 60,
+                                      height: 60,
+                                    )
                                   : Container(
                                       color: Colors.white.withOpacity(0.2),
                                       child: const Icon(

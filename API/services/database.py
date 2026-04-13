@@ -72,6 +72,8 @@ class Database:
                     SELECT image_path 
                     FROM Image 
                     WHERE id_remedy = %s
+                    ORDER BY id_image DESC
+                    LIMIT 4
                 """
                 print("Id", id_remedy)
                 cursor.execute(query, (int(id_remedy),))

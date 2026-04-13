@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pill_time/pages/utils/hourSelectionWidget.dart';
 import 'package:pill_time/pages/utils/imageSelectionWidget.dart';
@@ -7,7 +8,9 @@ import 'package:pill_time/src/models/medicationSchedule.dart';
 import 'package:pill_time/src/models/remedy.dart';
 import 'package:pill_time/src/providers/memory.dart';
 import 'package:pill_time/src/providers/settings.dart';
+import 'package:pill_time/src/tools/connection.dart';
 import 'package:provider/provider.dart';
+import 'dart:convert';
 
 class Addpillpage extends StatefulWidget {
   const Addpillpage({super.key});
@@ -21,6 +24,8 @@ class _AddpillpageState extends State<Addpillpage> {
   bool get hasRemedy =>
       medicationSchedule.remedy != null && medicationSchedule.remedy.id != -1;
 
+  List<Image> remedyImages = [];
+
   void setDosage(double dosage) {
     setState(() => medicationSchedule.dose = dosage);
   }
@@ -33,17 +38,22 @@ class _AddpillpageState extends State<Addpillpage> {
     setState(() => medicationSchedule.times = hours);
   }
 
-  void setImages(List<dynamic> images) {
+  void setImages(List<dynamic> images) async {
+    List<String> base64Images = [];
+
+    for (var img in images) {
+      if (img is File) {
+        List<int> bytes = await img.readAsBytes();
+        base64Images.add(base64Encode(bytes));
+      } else if (img is String) {
+        base64Images.add(base64Encode(utf8.encode(img)));
+      } else {
+        throw Exception("Tipo inválido: ${img.runtimeType}");
+      }
+    }
+
     setState(() {
-      medicationSchedule.images = images.map<Image>((img) {
-        if (img is File) {
-          return Image.file(img);
-        } else if (img is String) {
-          return Image.network(img);
-        } else {
-          throw Exception("Tipo de imagem inválido: $img");
-        }
-      }).toList();
+      medicationSchedule.images = base64Images;
     });
   }
 
@@ -124,10 +134,13 @@ class _AddpillpageState extends State<Addpillpage> {
                 ),
               ),
 
-            if (hasRemedy)
+            if (hasRemedy && medicationSchedule.remedy.images.isNotEmpty)
               SectionCard(
                 title: "Imagens",
-                child: ImageSelection(save: setImages),
+                child: ImageSelection(
+                  save: setImages,
+                  remedy: medicationSchedule.remedy,
+                ),
               ),
 
             const SizedBox(height: 20),
@@ -162,10 +175,16 @@ class _AddpillpageState extends State<Addpillpage> {
             trailing: Text(
               remedy.type == PillType.generic ? "Genérico" : "Referência",
             ),
-            onTap: () {
+            onTap: () async {
+              controller.closeView(remedy.name);
+
+              final images = await Connection.getImagesByRemedy(remedy.id);
+
+              if (!mounted) return;
+
               setState(() {
-                controller.closeView(remedy.name);
                 medicationSchedule.remedy = remedy;
+                medicationSchedule.remedy.images = images;
               });
             },
           );

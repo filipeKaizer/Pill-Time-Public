@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:pill_time/src/models/medicationSchedule.dart';
 import 'package:pill_time/src/providers/settings.dart';
+import 'package:pill_time/src/tools/cache.dart';
 import 'package:pill_time/src/tools/connection.dart';
 import 'package:pill_time/src/models/remedy.dart';
 import 'package:pill_time/src/tools/notification.dart';
-import 'package:timezone/timezone.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 class Memory with ChangeNotifier {
@@ -14,6 +14,7 @@ class Memory with ChangeNotifier {
 
   late Connection connection;
   late Notify notification;
+  late CacheSystem cache;
 
   final GlobalKey<NavigatorState> navigatorKey;
 
@@ -23,14 +24,23 @@ class Memory with ChangeNotifier {
   Memory({required this.navigatorKey}) {
     connection = Connection();
     notification = Notify(navigatorKey: navigatorKey);
-    _initializeRemedies();
+    cache = CacheSystem("cache");
 
-    notification.init();
+    _init();
+  }
+
+  Future<void> _init() async {
+    await notification.init();
+
+    schedulesMedications = cache.getAllMedicationSchedules();
+
+    await _initializeRemedies();
+
+    notifyListeners();
   }
 
   Future<void> _initializeRemedies() async {
     remedies = await connection.getAllRemedies();
-    notifyListeners();
   }
 
   Memory.rand({required this.navigatorKey}) {
@@ -45,78 +55,57 @@ class Memory with ChangeNotifier {
   }
 
   List<DateTime> getListOfDays(int max) {
-    List<DateTime> days = [];
-
-    for (int d = 0; d < max; d++) {
-      days.add(DateTime.now().add(Duration(days: d)));
-    }
-
-    return days;
+    return List.generate(
+      max,
+      (index) => DateTime.now().add(Duration(days: index)),
+    );
   }
 
   List<MedicationSchedule> getMedicationSchedule(int selectedDayOfMounth) {
-    List<MedicationSchedule> list = [];
-
-    for (MedicationSchedule medicationSchedule in schedulesMedications) {
-      if (medicationSchedule.mounthDay == -1 ||
-          medicationSchedule.mounthDay == selectedDayOfMounth) {
-        list.add(medicationSchedule);
-      }
-    }
-
-    return list;
+    return schedulesMedications.where((medicationSchedule) {
+      return medicationSchedule.mounthDay == -1 ||
+          medicationSchedule.mounthDay == selectedDayOfMounth;
+    }).toList();
   }
 
   List<ListTile> getRemedySugestions() {
-    if (remedies.isNotEmpty) {
-      return remedies.map((remedy) {
-        return ListTile(
-          title: Text(remedy.name),
-          trailing: Text(
-            "${(remedy.type == PillType.generic) ? "Genérico" : "Referência"}",
-          ),
-        );
-      }).toList();
-    }
-
-    return [];
+    return remedies.map((remedy) {
+      return ListTile(
+        title: Text(remedy.name),
+        trailing: Text(
+          remedy.type == PillType.generic ? "Genérico" : "Referência",
+        ),
+      );
+    }).toList();
   }
 
   void addMedicationSchedule(MedicationSchedule schedule) {
     schedulesMedications.add(schedule);
-    for (PillTime time in schedule.times) {
-      print(time.hour);
-    }
-    print(schedule.dose);
-    print(schedule.qtd);
 
-    // Registra as notificações
     registerAllNotifications(Settings.numOfDays);
 
     notifyListeners();
   }
 
   Future<void> registerAllNotifications(int numberOfDays) async {
+    cache.saveAllMedicationSchedules(schedulesMedications);
+
     await notification.cancelAll();
 
     if (schedulesMedications.isEmpty) return;
 
     final now = tz.TZDateTime.now(tz.local);
 
-    for (MedicationSchedule medicationSchedule in schedulesMedications) {
-      for (PillTime time in medicationSchedule.times) {
-        // percorre hoje + próximos dias
+    for (var medicationSchedule in schedulesMedications) {
+      for (var time in medicationSchedule.times) {
         for (int i = 0; i <= numberOfDays; i++) {
           final baseDate = now.add(Duration(days: i));
 
           tz.TZDateTime date;
 
-          // CASO tenha dia fixo no mês
           if (medicationSchedule.mounthDay != -1) {
-            // só agenda se o dia bater
             if (baseDate.day != medicationSchedule.mounthDay) continue;
 
-            // garante dia válido no mês
             final lastDayOfMonth = DateTime(
               baseDate.year,
               baseDate.month + 1,
@@ -134,10 +123,8 @@ class Memory with ChangeNotifier {
               safeDay,
               time.hour,
               time.minute,
-              0,
             );
           } else {
-            // caso normal (todo dia)
             date = tz.TZDateTime(
               tz.local,
               baseDate.year,
@@ -145,16 +132,14 @@ class Memory with ChangeNotifier {
               baseDate.day,
               time.hour,
               time.minute,
-              0,
             );
           }
 
-          // evita passado
           if (!date.isAfter(now)) continue;
 
           await notification.addScheduleNotification(
             medicationSchedule.remedy.name,
-            "Tomar ${medicationSchedule.qtd} doses/comprimidos de ${medicationSchedule.dose}mg.",
+            "Tomar ${medicationSchedule.qtd} comprimidos de ${medicationSchedule.dose}mg.",
             date,
           );
         }

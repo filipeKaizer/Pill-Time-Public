@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_mdi_icons/flutter_mdi_icons.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:pill_time/pages/AssistencePage.dart';
 import 'package:pill_time/pages/PillPage.dart';
 import 'package:pill_time/pages/addPillPage.dart';
@@ -16,11 +17,15 @@ import 'package:timezone/timezone.dart' as tz;
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   tz.initializeTimeZones();
   tz.setLocalLocation(tz.getLocation('America/Sao_Paulo'));
+
+  await Hive.initFlutter();
+
+  await Hive.openBox('cache'); // cria/abre o armazenamento
 
   FlutterForegroundTask.init(
     androidNotificationOptions: AndroidNotificationOptions(
