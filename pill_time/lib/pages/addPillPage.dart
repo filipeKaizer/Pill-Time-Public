@@ -43,18 +43,21 @@ class _AddpillpageState extends State<Addpillpage> {
 
     for (var img in images) {
       if (img is File) {
-        List<int> bytes = await img.readAsBytes();
-        base64Images.add(base64Encode(bytes));
+        final encoded = await compute(_encode, img.path);
+        base64Images.add(encoded);
       } else if (img is String) {
-        base64Images.add(base64Encode(utf8.encode(img)));
-      } else {
-        throw Exception("Tipo inválido: ${img.runtimeType}");
+        base64Images.add(img);
       }
     }
 
     setState(() {
       medicationSchedule.images = base64Images;
     });
+  }
+
+  String _encode(String path) {
+    final bytes = File(path).readAsBytesSync();
+    return base64Encode(bytes);
   }
 
   void setMounthDay(int dayOfMounth) {
