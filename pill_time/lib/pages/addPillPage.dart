@@ -19,6 +19,11 @@ class Addpillpage extends StatefulWidget {
   State<Addpillpage> createState() => _AddpillpageState();
 }
 
+String encodeImage(String path) {
+  final bytes = File(path).readAsBytesSync();
+  return base64Encode(bytes);
+}
+
 class _AddpillpageState extends State<Addpillpage> {
   MedicationSchedule medicationSchedule = MedicationSchedule();
   bool get hasRemedy =>
@@ -39,19 +44,21 @@ class _AddpillpageState extends State<Addpillpage> {
   }
 
   void setImages(List<dynamic> images) async {
-    List<String> base64Images = [];
-
-    for (var img in images) {
+    final futures = images.map((img) async {
       if (img is File) {
-        final encoded = await compute(_encode, img.path);
-        base64Images.add(encoded);
+        return await compute(encodeImage, img.path);
       } else if (img is String) {
-        base64Images.add(img);
+        return img;
       }
-    }
+      return null;
+    });
+
+    final results = await Future.wait(futures);
+
+    if (!mounted) return;
 
     setState(() {
-      medicationSchedule.images = base64Images;
+      medicationSchedule.images = results.whereType<String>().toList();
     });
   }
 
@@ -137,7 +144,7 @@ class _AddpillpageState extends State<Addpillpage> {
                 ),
               ),
 
-            if (hasRemedy && medicationSchedule.remedy.images.isNotEmpty)
+            if (hasRemedy)
               SectionCard(
                 title: "Imagens",
                 child: ImageSelection(
