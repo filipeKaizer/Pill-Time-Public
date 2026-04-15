@@ -5,6 +5,7 @@ import 'package:pill_time/src/tools/cache.dart';
 import 'package:pill_time/src/tools/connection.dart';
 import 'package:pill_time/src/models/remedy.dart';
 import 'package:pill_time/src/tools/notification.dart';
+import 'package:pill_time/src/tools/speak.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 class Memory with ChangeNotifier {
@@ -15,6 +16,7 @@ class Memory with ChangeNotifier {
   late Connection connection;
   late Notify notification;
   late CacheSystem cache;
+  late Speak speak;
 
   final GlobalKey<NavigatorState> navigatorKey;
 
@@ -25,7 +27,7 @@ class Memory with ChangeNotifier {
     connection = Connection();
     notification = Notify(navigatorKey: navigatorKey);
     cache = CacheSystem("cache");
-
+    speak = Speak();
     _init();
   }
 

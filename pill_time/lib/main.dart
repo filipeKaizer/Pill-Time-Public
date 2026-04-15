@@ -5,7 +5,7 @@ import 'package:hive_flutter/adapters.dart';
 import 'package:pill_time/pages/AssistencePage.dart';
 import 'package:pill_time/pages/PillPage.dart';
 import 'package:pill_time/pages/addPillPage.dart';
-import 'package:pill_time/pages/alarmPage.dart';
+import 'package:pill_time/pages/alarmPages/alarmPage.dart';
 import 'package:pill_time/pages/progressPage.dart';
 import 'package:pill_time/pages/settingsPage.dart';
 import 'package:pill_time/pages/welcomePage.dart';

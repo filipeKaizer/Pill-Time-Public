@@ -16,7 +16,7 @@ import clip
 # ==============================
 OUTPUT_CSV = "resultado.csv"
 IMAGENS_POR_ITEM = 4
-UPLOAD_URL = "http://127.0.0.1:5000/uploadImage"
+UPLOAD_URL = "http:/200.18.75.25:8325/pill/uploadImage"
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0"
@@ -106,7 +106,7 @@ def enviar_para_api(remedy_id, caminho_imagem):
 # BUSCA
 # ==============================
 def search_images(remedio, limite=10):
-    query = f"{remedio} caixa medicamento embalagem genérico ou referência"
+    query = f"{remedio} caixa medicamento embalagem"
 
     imagens = []
 
