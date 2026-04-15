@@ -101,7 +101,7 @@ class _AddpillpageState extends State<Addpillpage> {
             ),
             onPressed: () {
               final memory = context.read<Memory>();
-
+              if (medicationSchedule.qtd == 0) medicationSchedule.qtd = 1;
               memory.addMedicationSchedule(medicationSchedule);
 
               Navigator.pop(context);

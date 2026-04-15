@@ -89,6 +89,14 @@ class Memory with ChangeNotifier {
     notifyListeners();
   }
 
+  void clearMedicationSchedule() {
+    schedulesMedications.clear();
+
+    registerAllNotifications(Settings.numOfDays);
+
+    notifyListeners();
+  }
+
   Future<void> registerAllNotifications(int numberOfDays) async {
     cache.saveAllMedicationSchedules(schedulesMedications);
 
