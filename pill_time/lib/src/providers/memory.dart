@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pill_time/src/models/medicationSchedule.dart';
+import 'package:pill_time/src/models/progress.dart';
 import 'package:pill_time/src/providers/settings.dart';
 import 'package:pill_time/src/tools/cache.dart';
 import 'package:pill_time/src/tools/connection.dart';
@@ -17,6 +18,7 @@ class Memory with ChangeNotifier {
   late Notify notification;
   late CacheSystem cache;
   late Speak speak;
+  late Progress progress;
 
   final GlobalKey<NavigatorState> navigatorKey;
 
@@ -28,6 +30,7 @@ class Memory with ChangeNotifier {
     notification = Notify(navigatorKey: navigatorKey);
     cache = CacheSystem("cache");
     speak = Speak();
+    progress = Progress();
     _init();
   }
 

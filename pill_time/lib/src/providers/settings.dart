@@ -12,9 +12,11 @@ class Settings with ChangeNotifier {
   // Número de dias a serem registrados
   static int numOfDays = 7;
 
-  Settings() {
-    api = API(port: 5000, ip: '192.168.23.196');
-  }
+  // Regras de pontuação
+  static int perRemedy = 1;
+  static int perSequentialDay = 5;
+
+  Settings();
 }
 
 class API {
