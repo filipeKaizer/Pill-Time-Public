@@ -44,6 +44,46 @@ class Memory with ChangeNotifier {
     notifyListeners();
   }
 
+  List<MedicationSchedule> getClosestMedicationSchema(int maxMinutes) {
+    List<MedicationSchedule> schedules = [];
+
+    final now = DateTime.now();
+
+    for (MedicationSchedule schedule in schedulesMedications) {
+      for (PillTime time in schedule.times) {
+        DateTime today = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          time.hour,
+          time.minute,
+        );
+
+        DateTime yesterday = today.subtract(const Duration(days: 1));
+        DateTime tomorrow = today.add(const Duration(days: 1));
+
+        final diffs = [
+          today.difference(now).abs(),
+          yesterday.difference(now).abs(),
+          tomorrow.difference(now).abs(),
+        ];
+
+        final minDiff = diffs.reduce((a, b) => a < b ? a : b);
+
+        if (minDiff.inMinutes <= maxMinutes) {
+          schedules.add(schedule);
+
+          // Cancela o agendamento para não haver notificações repetidas
+          notification.cancelById(schedule.id);
+
+          break;
+        }
+      }
+    }
+
+    return schedules;
+  }
+
   Future<void> _initializeRemedies() async {
     remedies = await connection.getAllRemedies();
   }
@@ -90,6 +130,7 @@ class Memory with ChangeNotifier {
   void clearMedicationSchedule() {
     schedulesMedications.clear();
 
+    notification.cancelAll();
     registerAllNotifications(Settings.numOfDays);
 
     notifyListeners();

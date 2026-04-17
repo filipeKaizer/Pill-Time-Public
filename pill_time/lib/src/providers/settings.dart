@@ -7,10 +7,12 @@ class Settings with ChangeNotifier {
   static Color bottonBarColor = const Color.fromARGB(255, 30, 33, 86);
   static Color backgroungListTile = const Color.fromARGB(255, 31, 138, 138);
 
-  static API api = API(port: 5000, ip: '192.168.23.196');
+  static API api = API(port: 8326, ip: '200.18.75.25');
 
   // Número de dias a serem registrados
   static int numOfDays = 7;
+  // Numero de minutos de proximidade entre remédios
+  static int closestTime = 20;
 
   // Regras de pontuação
   static int perRemedy = 1;
