@@ -74,7 +74,10 @@ class Memory with ChangeNotifier {
           schedules.add(schedule);
 
           // Cancela o agendamento para não haver notificações repetidas
-          notification.cancelById(schedule.id);
+          int id = (schedule.id * 1000 + time.hour * 60 + time.minute + 0)
+              .remainder(2000000000);
+
+          notification.cancelById(id);
 
           break;
         }
@@ -148,6 +151,9 @@ class Memory with ChangeNotifier {
     for (var medicationSchedule in schedulesMedications) {
       for (var time in medicationSchedule.times) {
         for (int i = 0; i <= numberOfDays; i++) {
+          int id =
+              (medicationSchedule.id * 1000 + time.hour * 60 + time.minute + i)
+                  .remainder(2000000000);
           final baseDate = now.add(Duration(days: i));
 
           tz.TZDateTime date;
@@ -187,6 +193,7 @@ class Memory with ChangeNotifier {
           if (!date.isAfter(now)) continue;
 
           await notification.addScheduleNotification(
+            id,
             medicationSchedule.remedy.name,
             "Tomar ${medicationSchedule.qtd} comprimidos de ${medicationSchedule.dose}mg.",
             date,
