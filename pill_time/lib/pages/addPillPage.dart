@@ -30,6 +30,7 @@ class _AddpillpageState extends State<Addpillpage> {
       medicationSchedule.remedy != null && medicationSchedule.remedy.id != -1;
 
   List<Image> remedyImages = [];
+  String medicationsSugestion = "";
 
   void setDosage(double dosage) {
     setState(() => medicationSchedule.dose = dosage);
@@ -167,7 +168,12 @@ class _AddpillpageState extends State<Addpillpage> {
           hintText: "Buscar remédio...",
           controller: controller,
           onTap: controller.openView,
-          onChanged: (_) => controller.openView(),
+          onChanged: (value) {
+            setState(() {
+              medicationsSugestion = value;
+            });
+            controller.openView();
+          },
           trailing: [
             IconButton(
               onPressed: controller.openView,
@@ -177,9 +183,14 @@ class _AddpillpageState extends State<Addpillpage> {
         );
       },
       suggestionsBuilder: (context, controller) {
-        final remedies = context.read<Memory>().remedies;
+        final memory = context.read<Memory>();
 
-        return remedies.map((remedy) {
+        final query = controller.text.trim();
+
+        final suggestions = memory.getRemedySugestions(query);
+        print(suggestions);
+
+        return suggestions.map((remedy) {
           return ListTile(
             title: Text(remedy.name),
             trailing: Text(
@@ -187,6 +198,10 @@ class _AddpillpageState extends State<Addpillpage> {
             ),
             onTap: () async {
               controller.closeView(remedy.name);
+
+              Future.delayed(const Duration(milliseconds: 100), () {
+                FocusManager.instance.primaryFocus?.unfocus();
+              });
 
               final images = await Connection.getImagesByRemedy(remedy.id);
 

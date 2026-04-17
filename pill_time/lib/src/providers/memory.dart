@@ -73,15 +73,10 @@ class Memory with ChangeNotifier {
     }).toList();
   }
 
-  List<ListTile> getRemedySugestions() {
-    return remedies.map((remedy) {
-      return ListTile(
-        title: Text(remedy.name),
-        trailing: Text(
-          remedy.type == PillType.generic ? "Genérico" : "Referência",
-        ),
-      );
-    }).toList();
+  List<Remedy> getRemedySugestions(String query) {
+    return remedies
+        .where((r) => r.name.toLowerCase().contains(query.toLowerCase()))
+        .toList();
   }
 
   void addMedicationSchedule(MedicationSchedule schedule) {
