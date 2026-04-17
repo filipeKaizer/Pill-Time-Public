@@ -110,10 +110,37 @@ class Memory with ChangeNotifier {
   }
 
   List<MedicationSchedule> getMedicationSchedule(int selectedDayOfMounth) {
-    return schedulesMedications.where((medicationSchedule) {
-      return medicationSchedule.mounthDay == -1 ||
-          medicationSchedule.mounthDay == selectedDayOfMounth;
+    final now = DateTime.now();
+
+    List<MedicationSchedule> filtered = schedulesMedications.where((schedule) {
+      return schedule.mounthDay == -1 ||
+          schedule.mounthDay == selectedDayOfMounth;
     }).toList();
+
+    filtered.sort((a, b) {
+      DateTime getDate(MedicationSchedule s) {
+        final t = s.getNextTime();
+
+        DateTime date = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          t.hour,
+          t.minute,
+        );
+
+        // Se já passou, joga pro próximo dia
+        if (date.isBefore(now)) {
+          date = date.add(const Duration(days: 1));
+        }
+
+        return date;
+      }
+
+      return getDate(a).compareTo(getDate(b));
+    });
+
+    return filtered;
   }
 
   List<Remedy> getRemedySugestions(String query) {
