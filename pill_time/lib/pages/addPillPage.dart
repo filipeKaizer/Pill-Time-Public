@@ -101,6 +101,31 @@ class _AddpillpageState extends State<Addpillpage> {
               ),
             ),
             onPressed: () {
+              if (medicationSchedule.remedy.isNone()) {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return _buildAlert(
+                      "Remédio não informado",
+                      "Antes de salvar, selecione um remédio.",
+                    );
+                  },
+                );
+                return;
+              }
+              if (medicationSchedule.times.isEmpty) {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return _buildAlert(
+                      "Horário ausente",
+                      "Antes de salvar, informe ao menos um horário.",
+                    );
+                  },
+                );
+                return;
+              }
+
               final memory = context.read<Memory>();
               if (medicationSchedule.qtd == 0) medicationSchedule.qtd = 1;
               memory.addMedicationSchedule(medicationSchedule);
@@ -215,6 +240,21 @@ class _AddpillpageState extends State<Addpillpage> {
           );
         }).toList();
       },
+    );
+  }
+
+  Widget _buildAlert(String title, String content) {
+    return AlertDialog(
+      title: Text(title),
+      content: Text(content),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: Text("Ok"),
+        ),
+      ],
     );
   }
 }

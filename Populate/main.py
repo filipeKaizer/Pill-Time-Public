@@ -16,7 +16,7 @@ import clip
 # ==============================
 OUTPUT_CSV = "resultado.csv"
 IMAGENS_POR_ITEM = 4
-UPLOAD_URL = "http:/200.18.75.25:8325/pill/uploadImage"
+UPLOAD_URL = "http://200.18.75.25:8326/uploadImage"
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0"
