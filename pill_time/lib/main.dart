@@ -4,7 +4,7 @@ import 'package:flutter_mdi_icons/flutter_mdi_icons.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:pill_time/pages/mainPages/AssistencePage.dart';
 import 'package:pill_time/pages/mainPages/PillPage.dart';
-import 'package:pill_time/pages/addPillPage.dart';
+import 'package:pill_time/pages/mainPages/addPillPage.dart';
 import 'package:pill_time/pages/alarmPages/alarmPage.dart';
 import 'package:pill_time/pages/mainPages/progressPage.dart';
 import 'package:pill_time/pages/mainPages/settingsPage.dart';
