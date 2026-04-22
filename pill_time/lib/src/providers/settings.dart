@@ -18,6 +18,9 @@ class Settings with ChangeNotifier {
   static int perRemedy = 1;
   static int perSequentialDay = 5;
 
+  // Tamnho do texto
+  static double textSize = 1;
+
   Settings();
 }
 
