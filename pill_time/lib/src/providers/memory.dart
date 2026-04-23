@@ -62,20 +62,31 @@ class Memory with ChangeNotifier {
         DateTime yesterday = today.subtract(const Duration(days: 1));
         DateTime tomorrow = today.add(const Duration(days: 1));
 
-        final diffs = [
-          today.difference(now).abs(),
-          yesterday.difference(now).abs(),
-          tomorrow.difference(now).abs(),
-        ];
+        final mapDiffs = {
+          -1: yesterday.difference(now).abs(),
+          0: today.difference(now).abs(),
+          1: tomorrow.difference(now).abs(),
+        };
 
-        final minDiff = diffs.reduce((a, b) => a < b ? a : b);
+        // Descobre qual offset é o mais próximo
+        int closestOffset = mapDiffs.entries
+            .reduce((a, b) => a.value < b.value ? a : b)
+            .key;
+
+        final minDiff = mapDiffs[closestOffset]!;
 
         if (minDiff.inMinutes <= maxMinutes) {
-          schedules.add(schedule);
+          if (!schedules.contains(schedule)) {
+            schedules.add(schedule);
+          }
 
-          // Cancela o agendamento para não haver notificações repetidas
-          int id = (schedule.id * 1000 + time.hour * 60 + time.minute + 0)
-              .remainder(2000000000);
+          // Cancela APENAS o dia correto
+          int id =
+              (schedule.id * 1000 +
+                      time.hour * 60 +
+                      time.minute +
+                      closestOffset)
+                  .remainder(2000000000);
 
           notification.cancelById(id);
 
