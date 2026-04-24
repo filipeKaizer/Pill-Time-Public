@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_mdi_icons/flutter_mdi_icons.dart';
 import 'package:hive_flutter/adapters.dart';
