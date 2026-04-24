@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_mdi_icons/flutter_mdi_icons.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:pill_time/pages/mainPages/AssistencePage.dart';
-import 'package:pill_time/pages/mainPages/PillPage.dart';
-import 'package:pill_time/pages/mainPages/addPillPage.dart';
+import 'package:pill_time/pages/pillPage/PillPage.dart';
+import 'package:pill_time/pages/pillPage/addPillPage.dart';
 import 'package:pill_time/pages/alarmPages/alarmPage.dart';
-import 'package:pill_time/pages/mainPages/progressPage.dart';
+import 'package:pill_time/pages/gamePages/progressPage.dart';
 import 'package:pill_time/pages/mainPages/settingsPage.dart';
 import 'package:pill_time/pages/mainPages/welcomePage.dart';
+import 'package:pill_time/pages/utils/pdfView.dart';
 import 'package:pill_time/src/providers/memory.dart';
 import 'package:pill_time/src/providers/settings.dart';
 import 'package:provider/provider.dart';
@@ -86,6 +88,20 @@ class _PillTimeWidgetState extends State<PillTimeWidget> {
                 elevation: 2,
                 centerTitle: true,
                 backgroundColor: Settings.backgroundColor,
+                actions: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 5),
+                    child: InkWell(
+                      onTap: () {
+                        // implementar dps
+                        navigatorKey.currentState?.push(
+                          MaterialPageRoute(builder: (_) => PdfView()),
+                        );
+                      },
+                      child: Icon(Mdi.printer, color: Colors.white, size: 27),
+                    ),
+                  ),
+                ],
                 title: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

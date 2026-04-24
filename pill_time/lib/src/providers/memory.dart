@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pill_time/src/models/medicationSchedule.dart';
-import 'package:pill_time/src/models/progress.dart';
+import 'package:pill_time/src/models/pillTime.dart';
+import 'package:pill_time/src/tools/progress.dart';
 import 'package:pill_time/src/providers/settings.dart';
 import 'package:pill_time/src/tools/cache.dart';
 import 'package:pill_time/src/tools/connection.dart';
@@ -255,3 +256,5 @@ class Memory with ChangeNotifier {
     notifyListeners();
   }
 }
+
+enum periods { morning, afternoon, night, other }
