@@ -93,12 +93,11 @@ class _PillTimeWidgetState extends State<PillTimeWidget> {
                     padding: const EdgeInsets.only(right: 5),
                     child: InkWell(
                       onTap: () {
-                        // implementar dps
                         navigatorKey.currentState?.push(
                           MaterialPageRoute(builder: (_) => PdfView()),
                         );
                       },
-                      child: Icon(Mdi.printer, color: Colors.white, size: 27),
+                      child: Icon(Mdi.printer, color: Colors.white, size: 25),
                     ),
                   ),
                 ],
