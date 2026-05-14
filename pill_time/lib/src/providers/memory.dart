@@ -101,6 +101,8 @@ class Memory with ChangeNotifier {
 
   Future<void> _initializeRemedies() async {
     remedies = await connection.getAllRemedies();
+
+    notifyListeners();
   }
 
   Memory.rand({required this.navigatorKey}) {
@@ -240,6 +242,8 @@ class Memory with ChangeNotifier {
         }
       }
     }
+
+    notifyListeners();
   }
 
   Remedy addNewRemedy({
@@ -262,7 +266,7 @@ class Memory with ChangeNotifier {
     remedies.add(remedy);
 
     cache.saveAllMedicationSchedules(schedulesMedications);
-
+    notifyListeners();
     return remedy;
   }
 
