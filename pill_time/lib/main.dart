@@ -43,12 +43,14 @@ void main() async {
     ),
   );
 
+  Settings settings = Settings();
+
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider<Settings>(create: (_) => Settings()),
+        ChangeNotifierProvider<Settings>(create: (_) => settings),
         ChangeNotifierProvider<Memory>(
-          create: (_) => Memory(navigatorKey: navigatorKey),
+          create: (_) => Memory(navigatorKey: navigatorKey, settings: settings),
         ),
       ],
       child: const PillTimeWidget(),

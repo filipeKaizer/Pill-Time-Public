@@ -21,12 +21,14 @@ class Memory with ChangeNotifier {
   late Speak speak;
   late Progress progress;
 
+  Settings settings;
+
   final GlobalKey<NavigatorState> navigatorKey;
 
   List<Remedy> remedies = [];
   List<MedicationSchedule> schedulesMedications = [];
 
-  Memory({required this.navigatorKey}) {
+  Memory({required this.navigatorKey, required this.settings}) {
     connection = Connection();
     notification = Notify(navigatorKey: navigatorKey);
     cache = CacheSystem("cache");
@@ -59,7 +61,7 @@ class Memory with ChangeNotifier {
 
     try {
       // Busca rede em background
-      final networkRemedies = await connection.getAllRemedies();
+      final networkRemedies = await connection.getAllRemedies(settings.api);
 
       // Faz merge
       final Map<String, Remedy> uniqueRemedies = {};
@@ -132,12 +134,12 @@ class Memory with ChangeNotifier {
   }
 
   Future<void> _initializeRemedies() async {
-    remedies = await connection.getAllRemedies();
+    remedies = await connection.getAllRemedies(settings.api);
 
     notifyListeners();
   }
 
-  Memory.rand({required this.navigatorKey}) {
+  Memory.rand({required this.navigatorKey, required this.settings}) {
     notification = Notify(navigatorKey: navigatorKey);
     connection = Connection();
 
