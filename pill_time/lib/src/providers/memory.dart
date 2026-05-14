@@ -40,9 +40,38 @@ class Memory with ChangeNotifier {
 
     schedulesMedications = cache.getAllMedicationSchedules();
 
+    await loadRemedies();
+
     await _initializeRemedies();
 
     notifyListeners();
+  }
+
+  Future<void> loadRemedies() async {
+    final localRemedies = cache.getAllremedies().whereType<Remedy>().toList();
+
+    remedies = localRemedies;
+
+    notifyListeners();
+
+    try {
+      // Busca rede em background
+      final networkRemedies = await connection.getAllRemedies();
+
+      // Faz merge
+      final Map<String, Remedy> uniqueRemedies = {};
+
+      for (final remedy in [...networkRemedies, ...localRemedies]) {
+        uniqueRemedies[remedy.name.toLowerCase()] = remedy;
+      }
+
+      remedies = uniqueRemedies.values.toList();
+
+      // opcional: salva no cache atualizado
+      cache.saveAllRemedies(remedies);
+
+      notifyListeners();
+    } catch (e) {}
   }
 
   List<MedicationSchedule> getClosestMedicationSchema(int maxMinutes) {
@@ -265,7 +294,8 @@ class Memory with ChangeNotifier {
     Remedy remedy = Remedy(dosage: dosage, name: name, type: type, id: id);
     remedies.add(remedy);
 
-    cache.saveAllMedicationSchedules(schedulesMedications);
+    cache.saveAllRemedies(remedies);
+
     notifyListeners();
     return remedy;
   }
