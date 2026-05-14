@@ -242,6 +242,30 @@ class Memory with ChangeNotifier {
     }
   }
 
+  Remedy addNewRemedy({
+    required String name,
+    required double dosage,
+    required PillType type,
+  }) {
+    int id = 0;
+
+    if (remedies.isNotEmpty) {
+      int max = 0;
+      for (Remedy r in remedies) {
+        if (max < r.id) {
+          max = r.id;
+        }
+      }
+      id = max + 1;
+    }
+    Remedy remedy = Remedy(dosage: dosage, name: name, type: type, id: id);
+    remedies.add(remedy);
+
+    cache.saveAllMedicationSchedules(schedulesMedications);
+
+    return remedy;
+  }
+
   void useAssistencePage() {
     onWelcomePage = false;
     onAssitencePage = true;
