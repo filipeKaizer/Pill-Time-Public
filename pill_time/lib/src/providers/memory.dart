@@ -40,6 +40,9 @@ class Memory with ChangeNotifier {
 
     schedulesMedications = cache.getAllMedicationSchedules();
 
+    // Apaga os registros antigos e registra os novos
+    if (schedulesMedications.isNotEmpty) registerAllNotifications(7);
+
     await loadRemedies();
 
     await _initializeRemedies();
