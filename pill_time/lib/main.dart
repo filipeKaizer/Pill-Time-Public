@@ -27,6 +27,7 @@ void main() async {
   await Hive.initFlutter();
 
   await Hive.openBox('cache'); // cria/abre o armazenamento
+  await Hive.openBox('settings');
 
   FlutterForegroundTask.init(
     androidNotificationOptions: AndroidNotificationOptions(
@@ -53,13 +54,14 @@ void main() async {
           create: (_) => Memory(navigatorKey: navigatorKey, settings: settings),
         ),
       ],
-      child: const PillTimeWidget(),
+      child: PillTimeWidget(settings: settings),
     ),
   );
 }
 
 class PillTimeWidget extends StatefulWidget {
-  const PillTimeWidget({super.key});
+  Settings settings;
+  PillTimeWidget({required this.settings});
 
   @override
   State<PillTimeWidget> createState() => _PillTimeWidgetState();
@@ -68,7 +70,11 @@ class PillTimeWidget extends StatefulWidget {
 class _PillTimeWidgetState extends State<PillTimeWidget> {
   int currentIndex = 0;
 
-  final List<Widget> pages = [Pillpage(), Progresspage(), Settingspage()];
+  List<Widget> get pages => [
+    Pillpage(),
+    Progresspage(),
+    Settingspage(settings: widget.settings),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -78,9 +84,9 @@ class _PillTimeWidgetState extends State<PillTimeWidget> {
       routes: {'/alarm': (_) => AlarmPage()},
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
-      home: memory.onWelcomePage
+      home: memory.onWelcomePage && memory.settings.firstUse
           ? Welcomepage()
-          : memory.onAssitencePage
+          : memory.onAssitencePage && memory.settings.firstUse
           ? Assistencepage()
           : Scaffold(
               backgroundColor: Settings.backgroundColor,

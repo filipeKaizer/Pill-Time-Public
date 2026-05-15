@@ -32,8 +32,8 @@ class Memory with ChangeNotifier {
     connection = Connection();
     notification = Notify(navigatorKey: navigatorKey);
     cache = CacheSystem("cache");
-    speak = Speak();
-    progress = Progress();
+    speak = Speak(settings: settings);
+    progress = Progress(settings: settings);
     _init();
   }
 
@@ -200,7 +200,7 @@ class Memory with ChangeNotifier {
   void addMedicationSchedule(MedicationSchedule schedule) {
     schedulesMedications.add(schedule);
 
-    registerAllNotifications(Settings.numOfDays);
+    registerAllNotifications(settings.numOfDays);
 
     notifyListeners();
   }
@@ -209,7 +209,7 @@ class Memory with ChangeNotifier {
     schedulesMedications.clear();
 
     notification.cancelAll();
-    registerAllNotifications(Settings.numOfDays);
+    registerAllNotifications(settings.numOfDays);
 
     notifyListeners();
   }
