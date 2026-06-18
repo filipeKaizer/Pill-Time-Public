@@ -10,7 +10,7 @@
 
     <application
         android:label="Pill Time"
-        android:name="Pill Time"
+        android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 
         <!-- Foreground Service -->
