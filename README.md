@@ -134,8 +134,8 @@ Exemplo de configuracao:
 ```env
 DB_PASSWORD="sua_senha"
 DB_USER="pill"
-DB_IP="200.18.75.25"
-DB_PORT=8324
+DB_IP="ip"
+DB_PORT=3406
 DB_DATABASE="pill"
 IMAGE_FOLDER="images"
 YOLO_MODEL_PATH="models/medicine_yolo.pt"
