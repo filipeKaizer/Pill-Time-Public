@@ -9,8 +9,8 @@
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
 
     <application
-        android:label="pill_time"
-        android:name="${applicationName}"
+        android:label="Pill Time"
+        android:name="Pill Time"
         android:icon="@mipmap/ic_launcher">
 
         <!-- Foreground Service -->
