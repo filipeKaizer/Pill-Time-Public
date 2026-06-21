@@ -9,7 +9,6 @@ if TYPE_CHECKING:
     from controller import Controller
 
 class Flask_service:
-
     def __init__(self, controller : "Controller"):
         self.controller = controller
         self.image_path = controller.config.image_folder
@@ -88,7 +87,4 @@ class Flask_service:
         # REMEDIOS
         @controller.flask.route('/getRemedies', methods=['GET'])
         def getRemedyInfo():
-            return jsonify(self.controller.database.getAllRemedies())
-
-    def load_image_model(self):
-        return self.image_validator.load_model()
+            return self.controller.getRemedies()

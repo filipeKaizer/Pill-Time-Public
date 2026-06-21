@@ -10,7 +10,7 @@ class Settings with ChangeNotifier {
   static Color bottonBarColor = const Color.fromARGB(255, 30, 33, 86);
   static Color backgroungListTile = const Color.fromARGB(255, 31, 138, 138);
 
-  API api = API(port: 8326, ip: '200.18.75.25');
+  API api = API(port: 5000, ip: '127.0.0.1');
 
   // Número de dias a serem registrados
   int numOfDays = 7;

@@ -1,151 +1,512 @@
 import requests
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from statistics import mean
+import statistics
 import matplotlib.pyplot as plt
+
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 
 BASE_URL = "http://127.0.0.1:5000"
 
-NUM_REQUESTS = 200
-CONCURRENCY = 20
 
-TEST_IMAGE_PATH = "test.jpg"
-REMEDY_NAME = "teste_remedio"
+TEST_IMAGE = "test.jpg"
 
-
-# =========================
-# ARMAZENAMENTO GLOBAL DE MÉTRICAS
-# =========================
-metrics = {
-    "routes": [],
-    "avg_time": [],
-    "rps": []
-}
+REMEDY_ID = "105"
 
 
-def time_request(func, *args, **kwargs):
-    start = time.perf_counter()
-    response = func(*args, **kwargs)
-    elapsed = time.perf_counter() - start
-    return response, elapsed
+REQUESTS_PER_TEST = 100
 
 
-def run_test(route_name, task_func):
-    times = []
-
-    with ThreadPoolExecutor(max_workers=CONCURRENCY) as executor:
-        futures = [executor.submit(task_func) for _ in range(NUM_REQUESTS)]
-
-        for f in as_completed(futures):
-            _, t = f.result()
-            times.append(t)
-
-    avg_time = mean(times)
-    rps = NUM_REQUESTS / sum(times)
-
-    print(f"\n=== {route_name} ===")
-    print("Tempo médio:", avg_time)
-    print("RPS:", rps)
-
-    metrics["routes"].append(route_name)
-    metrics["avg_time"].append(avg_time)
-    metrics["rps"].append(rps)
+CONCURRENCY_LEVELS = [
+    1,
+    5,
+    10,
+    20,
+    50
+]
 
 
-# =========================
-# TESTES
-# =========================
-def test_get_remedies():
-    def task():
-        return time_request(requests.get, f"{BASE_URL}/getRemedies")
+results = []
 
-    run_test("/getRemedies", task)
+uploaded_filename = None
 
 
-def test_get_images():
-    def task():
-        return time_request(
-            requests.get,
-            f"{BASE_URL}/image",
-            params={"remedy": REMEDY_NAME},
+
+# ======================================================
+# FUNÇÕES DAS ROTAS
+# ======================================================
+
+
+def upload_image():
+
+    with open(TEST_IMAGE, "rb") as img:
+
+        files = {
+            "image": img
+        }
+
+        params = {
+            "remedy": REMEDY_ID
+        }
+
+
+        return requests.post(
+            f"{BASE_URL}/uploadImage",
+            files=files,
+            params=params,
+            timeout=60
         )
 
-    run_test("/image", task)
 
 
-def test_serve_image(filename):
-    def task():
-        return time_request(requests.get, f"{BASE_URL}/images/{filename}")
+def get_remedies():
 
-    run_test("/images/<filename>", task)
+    return requests.get(
+        f"{BASE_URL}/getRemedies",
+        timeout=30
+    )
 
 
-def test_upload_image():
-    uploaded_filename = None
 
-    def task():
-        nonlocal uploaded_filename
+def get_images():
 
-        with open(TEST_IMAGE_PATH, "rb") as img:
-            files = {"image": img}
-            params = {"remedy": REMEDY_NAME}
+    return requests.get(
+        f"{BASE_URL}/image",
+        params={
+            "remedy": REMEDY_ID
+        },
+        timeout=30
+    )
 
-            r, t = time_request(
-                requests.post,
-                f"{BASE_URL}/uploadImage",
-                files=files,
-                params=params,
+
+
+def serve_image():
+
+    return requests.get(
+        f"{BASE_URL}/images/{uploaded_filename}",
+        timeout=30
+    )
+
+
+
+# ======================================================
+# EXECUÇÃO INDIVIDUAL
+# ======================================================
+
+
+def execute_request(function):
+
+    start = time.perf_counter()
+
+    try:
+
+        response = function()
+
+        status = response.status_code
+
+
+        # captura filename do upload
+        global uploaded_filename
+
+
+        if (
+            status == 200
+            and "uploadImage" in function.__name__
+        ):
+
+            data = response.json()
+
+            uploaded_filename = (
+                data.get("filename")
             )
 
-        if r.status_code == 200 and uploaded_filename is None:
-            try:
-                uploaded_filename = r.json().get("filename")
-            except:
-                pass
 
-        return r.status_code, t
+    except Exception as e:
 
-    run_test("/uploadImage", task)
-
-    return uploaded_filename
+        status = 0
 
 
-# =========================
-# PLOTS
-# =========================
+    elapsed = (
+        time.perf_counter()
+        -
+        start
+    )
+
+
+    return elapsed, status
+
+
+
+# ======================================================
+# TESTE DE CARGA
+# ======================================================
+
+
+def run_load_test(
+        route,
+        function,
+        concurrency
+):
+
+
+    times = []
+
+    errors = 0
+
+
+    total_start = time.perf_counter()
+
+
+
+    with ThreadPoolExecutor(
+        max_workers=concurrency
+    ) as executor:
+
+
+        futures = []
+
+
+        for _ in range(
+            REQUESTS_PER_TEST
+        ):
+
+
+            futures.append(
+
+                executor.submit(
+                    execute_request,
+                    function
+                )
+
+            )
+
+
+
+        for future in as_completed(futures):
+
+            elapsed, status = (
+                future.result()
+            )
+
+
+            times.append(
+                elapsed
+            )
+
+
+            if status != 200:
+                errors += 1
+
+
+
+    total_time = (
+        time.perf_counter()
+        -
+        total_start
+    )
+
+
+    result = {
+
+
+        "route":
+            route,
+
+
+        "concurrency":
+            concurrency,
+
+
+        "avg":
+            statistics.mean(times),
+
+
+        "p95":
+            percentile(
+                times,
+                95
+            ),
+
+
+        "rps":
+            REQUESTS_PER_TEST
+            /
+            total_time,
+
+
+        "errors":
+            errors
+
+    }
+
+
+    results.append(result)
+
+
+
+    print(
+        f"""
+================================
+
+ROTA:
+{route}
+
+CONCORRÊNCIA:
+{concurrency}
+
+Tempo médio:
+{result['avg']:.4f}s
+
+P95:
+{result['p95']:.4f}s
+
+RPS:
+{result['rps']:.2f}
+
+Erros:
+{errors}
+
+================================
+"""
+    )
+
+
+
+# ======================================================
+# PERCENTIL
+# ======================================================
+
+
+def percentile(values, p):
+
+    values = sorted(values)
+
+    index = int(
+        len(values)
+        *
+        p
+        /
+        100
+    )
+
+    return values[index]
+
+
+
+# ======================================================
+# EXECUTA TODAS ROTAS
+# ======================================================
+
+
+def execute_tests():
+
+
+    routes = [
+
+        (
+            "/uploadImage",
+            upload_image
+        ),
+
+
+        (
+            "/getRemedies",
+            get_remedies
+        ),
+
+
+        (
+            "/image",
+            get_images
+        ),
+
+
+        (
+            "/images/<filename>",
+            serve_image
+        )
+
+    ]
+
+
+
+    for route, function in routes:
+
+
+        for concurrency in CONCURRENCY_LEVELS:
+
+
+            run_load_test(
+                route,
+                function,
+                concurrency
+            )
+
+
+
+# ======================================================
+# GRÁFICOS
+# ======================================================
+
+
 def plot_results():
-    # Tempo médio
-    plt.figure()
-    plt.bar(metrics["routes"], metrics["avg_time"])
-    plt.title("Tempo médio de resposta por rota")
-    plt.ylabel("Segundos")
-    plt.xlabel("Rotas")
-    plt.xticks(rotation=30)
 
+
+    routes = set(
+        x["route"]
+        for x in results
+    )
+
+
+    # ----------------------------
+    # TEMPO
+    # ----------------------------
+
+    plt.figure(
+        figsize=(10,6)
+    )
+
+
+    for route in routes:
+
+
+        data = [
+
+            x for x in results
+
+            if x["route"] == route
+
+        ]
+
+
+        plt.plot(
+
+            [
+                x["concurrency"]
+                for x in data
+            ],
+
+            [
+                x["avg"]
+                for x in data
+            ],
+
+            marker="o",
+
+            label=route
+
+        )
+
+
+
+    plt.title(
+        "Tempo médio de resposta"
+    )
+
+    plt.xlabel(
+        "Usuários simultâneos"
+    )
+
+    plt.ylabel(
+        "Tempo (segundos)"
+    )
+
+
+    plt.legend()
+
+    plt.grid()
+
+
+
+    # ----------------------------
     # RPS
-    plt.figure()
-    plt.bar(metrics["routes"], metrics["rps"])
-    plt.title("Requisições por segundo (RPS) por rota")
-    plt.ylabel("RPS")
-    plt.xlabel("Rotas")
-    plt.xticks(rotation=30)
+    # ----------------------------
+
+
+    plt.figure(
+        figsize=(10,6)
+    )
+
+
+    for route in routes:
+
+
+        data = [
+
+            x for x in results
+
+            if x["route"] == route
+
+        ]
+
+
+
+        plt.plot(
+
+            [
+                x["concurrency"]
+                for x in data
+            ],
+
+
+            [
+                x["rps"]
+                for x in data
+            ],
+
+
+            marker="o",
+
+            label=route
+
+        )
+
+
+
+    plt.title(
+        "Capacidade da API"
+    )
+
+
+    plt.xlabel(
+        "Usuários simultâneos"
+    )
+
+
+    plt.ylabel(
+        "Requisições por segundo"
+    )
+
+
+    plt.legend()
+
+    plt.grid()
+
+
 
     plt.show()
 
 
-# =========================
+
+# ======================================================
 # MAIN
-# =========================
+# ======================================================
+
+
 if __name__ == "__main__":
-    print("Iniciando testes de carga...\n")
 
-    uploaded_file = test_upload_image()
-    test_get_remedies()
-    test_get_images()
 
-    if uploaded_file:
-        test_serve_image(uploaded_file)
+    print(
+        "Iniciando benchmark da API..."
+    )
+
+
+    execute_tests()
+
 
     plot_results()
 
-    print("\nTestes finalizados.")
+
+    print(
+        "Teste finalizado"
+    )

@@ -1,11 +1,12 @@
-from image import Image
+import asyncio
 
 class Memory:
     def __init__(self):
-        # Remédios
-        self.remedies = []
-        # Buffer de imagens
-        self.image_buffer = []
+        self.remedies = None
+        self.images_queue = asyncio.Queue()
 
-    def newImage(self, image : Image):        
-        self.image_buffer.append(image)
+    async def newImage(self, image):
+        await self.images_queue.put(image)
+
+    async def get_image(self):
+        return await self.images_queue.get()
