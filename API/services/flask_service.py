@@ -1,18 +1,18 @@
 import base64
 from flask import Flask, request, jsonify, send_from_directory
 import os
-from services.image_validator import ImageValidationUnavailable, MedicineImageValidator
+from image import Image
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from controller import Controller
 
 class Flask_service:
 
-    def __init__(self, controller):
+    def __init__(self, controller : "Controller"):
         self.controller = controller
         self.image_path = controller.config.image_folder
-        self.image_validator = MedicineImageValidator(
-            model_path=controller.config.yolo_model_path,
-            confidence=controller.config.yolo_confidence,
-            medicine_classes=controller.config.yolo_medicine_classes,
-        )
 
         # Garante que a pasta existe
         os.makedirs(self.image_path, exist_ok=True)
@@ -20,7 +20,6 @@ class Flask_service:
         # UPLOAD
         @controller.flask.route('/uploadImage', methods=['POST'])
         def upload_image():
-
             if "image" not in request.files:
                 return jsonify({'status': 'error', 'message': 'No image sent'}), 400
 
@@ -32,47 +31,21 @@ class Flask_service:
                 }), 400
 
             image = request.files["image"]
-
             image_id = self.controller.database.get_next_image_id()
 
-            ext = os.path.splitext(image.filename)[1]
-            filename = f"{image_id}{ext}"
+            image_obj = Image(id=image_id, image=image, image_path=self.image_path, remedy=remedy)
 
-            # salva dentro da pasta
-            full_path = os.path.join(self.image_path, filename)
-
-            image.save(full_path)
-
-            try:
-                is_medicine_image = self.image_validator.is_medicine_image(full_path)
-            except ImageValidationUnavailable as e:
-                print("Erro na verificação de imagem:", e)
-                os.remove(full_path)
-                return jsonify({
-                    'status': 'error',
-                    'message': str(e)
-                }), 500
-
-            if not is_medicine_image:
-                os.remove(full_path)
-                return jsonify({
-                    'status': 'error',
-                    'message': 'Image is not recognized as a medicine image'
-                }), 400
-
-            # salva caminho da imagem no banco
-            self.controller.database.save_image_id(remedy, full_path)
+            self.controller.newImage(image=image_obj)
 
             return jsonify({
                 'status': 'success',
-                'filename': filename,
+                'filename': image.filename,
                 'medicine_image': True
             }), 200
 
         # GET IMAGENS (BASE64)
         @controller.flask.route('/image', methods=['GET'])
         def get_image():
-
             remedy_id = request.args.get('remedy')
 
             if not remedy_id:
