@@ -1,7 +1,0 @@
-flask
-mysql-connector-python
-python-dotenv
-ultralytics
-pillow
-torchvision
-
